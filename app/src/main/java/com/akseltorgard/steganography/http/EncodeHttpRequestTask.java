@@ -13,6 +13,7 @@ import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
@@ -24,39 +25,33 @@ public class EncodeHttpRequestTask extends HttpRequestTask{
     }
 
     @Override
-    protected RestParams doInBackground(RestParams... params) {
-        RestParams restParams = params[0];
+    protected RestParams execute(RestParams restParams) throws RestClientException {
+        RestTemplate restTemplate = new RestTemplate();
 
-        try {
-            RestTemplate restTemplate = new RestTemplate();
+        //Handles Strings
+        restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
 
-            //Handles Strings
-            restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
+        //Handles MultiValueMaps
+        restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
 
-            //Handles MultiValueMaps
-            restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
+        //Handles the encoded image byte array
+        restTemplate.getMessageConverters().add(new ByteArrayHttpMessageConverter());
 
-            //Handles the encoded image byte array
-            restTemplate.getMessageConverters().add(new ByteArrayHttpMessageConverter());
+        MultiValueMap<String, Object> map = new LinkedMultiValueMap();
+        map.add("image", new FileSystemResource(new File(restParams.getFilePath())));
+        map.add("messageString", restParams.getMessage());
 
-            MultiValueMap<String, Object> map = new LinkedMultiValueMap();
-            map.add("image", new FileSystemResource(new File(restParams.getFilePath())));
-            map.add("messageString", restParams.getMessage());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap<String, Object>> imageEntity = new HttpEntity(map, headers);
 
-            HttpEntity<MultiValueMap<String, Object>> imageEntity = new HttpEntity(map, headers);
+        String url = WEBSERVICE + ENCODE;
+        ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.POST, imageEntity, byte[].class);
 
-            String url = WEBSERVICE + ENCODE;
-            ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.POST, imageEntity, byte[].class);
+        restParams.setEncodedImageBytes(response.getBody());
+        restParams.setType(AsyncResponse.Type.ENCODE_SUCCESS);
 
-            restParams.setEncodedImageBytes(response.getBody());
-            restParams.setType(AsyncResponse.Type.ENCODE_SUCCESS);
-
-            return restParams;
-        } catch (Exception e) {
-            return handleFailure(e, restParams);
-        }
+        return restParams;
     }
 }

@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
     public void processResult(RestParams result, Type t) {
 
         findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-        
+
         switch (t) {
             case ENCODE_SUCCESS :
                 byte[] bytes = result.getEncodedImageBytes();
@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
                 break;
 
             case FAILURE:
-                Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, result.getMessage(), Toast.LENGTH_LONG).show();
                 break;
         }
     }

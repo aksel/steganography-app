@@ -5,6 +5,8 @@ import android.util.Log;
 
 import com.akseltorgard.steganography.AsyncResponse;
 
+import org.springframework.web.client.RestClientException;
+
 public abstract class HttpRequestTask extends AsyncTask<RestParams, Void, RestParams> {
 
     protected static final String WEBSERVICE = "http://52.28.29.249/steganography/steganography";
@@ -18,19 +20,27 @@ public abstract class HttpRequestTask extends AsyncTask<RestParams, Void, RestPa
     }
 
     @Override
-    protected abstract RestParams doInBackground(RestParams... params);
+    protected RestParams doInBackground(RestParams... params) {
+        RestParams restParams = params[0];
+        try {
+            return execute(restParams);
+        } catch (RestClientException e) {
+            return handleFailure(e, restParams);
+        }
+    }
+
+    protected abstract RestParams execute(RestParams restParams) throws RestClientException;
 
     @Override
     protected void onPostExecute(RestParams result) {
         mDelegate.processResult(result, result.getType());
     }
 
-    protected RestParams handleFailure(Exception e, RestParams restParams) {
-        Log.e("HttpRequestTask", "ERROR");
-        Log.e("HttpRequestTask", e.getMessage(), e);
-
-        restParams.setMessage(e.getMessage());
+    protected RestParams handleFailure(RestClientException e, RestParams restParams) {
+        restParams.setMessage("Error: " + e.getMostSpecificCause().getMessage());
         restParams.setType(AsyncResponse.Type.FAILURE);
+
+        Log.e("HttpRequestTask", restParams.getMessage(), e);
         return restParams;
     }
 }
