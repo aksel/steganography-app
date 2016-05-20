@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Steganography</string>
+    <string name="action_settings">Settings</string>
+    <string name="message_hint">Enter message…</string>
+    <string name="encode">Encode</string>
+    <string name="decode">Decode</string>
+    <string name="reply">Reply</string>
+    <string name="about">About</string>
+    <string name="about_description">This app was developed as a first semester project of Software Development bachelor, at Copenhagen School of Design and Technology.</string>
+    <string name="about_webservice">It implements a restful web service for steganography.</string>
+    <string name="about_compression">Due to the nature of steganography, images transmitted with messaging apps that compress attachments, e.g. Facebook's Messenger, won't contain the hidden message.</string>
+    <string name="about_developer">Developed in 2016 by Aksel Hjalmarsson Tórgarð</string>
+    <string name="decoded_message">Decoded Message</string>
+    <string name="imageButtonDescription">Select an image</string>
+    <string name="lorem_ipsum">Lorem ipsum dolor sit amet, consectetur adipiscing elit. In accumsan, eros vel sollicitudin posuere.</string>
+    <string name="encoded_image">Encoded Image</string>
+    <string name="send_image">Send Image</string>
+    <string name="cancel">Cancel</string>
+</resources>
