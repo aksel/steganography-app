@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+
         Button encodeButton = (Button) findViewById(R.id.button_encode);
         encodeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,6 +159,9 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
 
     @Override
     public void processResult(RestParams result, Type t) {
+
+        findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+        
         switch (t) {
             case ENCODE_SUCCESS :
                 byte[] bytes = result.getEncodedImageBytes();
@@ -177,6 +182,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
+        findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+
         if (resultCode == RESULT_OK) {
             RestParams restParams;
 
@@ -192,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
                     mFilePath = uriToFilePath(data.getData());
                     restParams = new RestParams(mFilePath, null);
                     DecodeHttpRequestTask decodeTask = new DecodeHttpRequestTask(this);
+                    findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
                     decodeTask.execute(restParams);
                     break;
 
@@ -203,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
                     if (message != null && !message.equals("")) {
                         restParams = new RestParams(mFilePath, message);
                         EncodeHttpRequestTask encodeTask = new EncodeHttpRequestTask(this);
+                        findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
                         encodeTask.execute(restParams);
                     }
                     break;

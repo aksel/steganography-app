@@ -19,7 +19,6 @@ public class AboutDialogFragment extends DialogFragment {
 
         return new AlertDialog.Builder(getActivity())
                 .setView(v)
-                .setTitle(R.string.about)
                 .create();
     }
 }
