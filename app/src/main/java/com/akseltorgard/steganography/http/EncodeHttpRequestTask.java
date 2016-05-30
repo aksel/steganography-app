@@ -1,5 +1,7 @@
 package com.akseltorgard.steganography.http;
 
+import android.util.Log;
+
 import com.akseltorgard.steganography.AsyncResponse;
 
 import org.springframework.core.io.FileSystemResource;
@@ -38,8 +40,15 @@ public class EncodeHttpRequestTask extends HttpRequestTask{
         restTemplate.getMessageConverters().add(new ByteArrayHttpMessageConverter());
 
         MultiValueMap<String, Object> map = new LinkedMultiValueMap();
-        map.add("image", new FileSystemResource(new File(restParams.getFilePath())));
+
+        long heapFreeSize = Runtime.getRuntime().freeMemory();
+        FileSystemResource fsr = new FileSystemResource(new File(restParams.getFilePath()));
+        heapFreeSize = Runtime.getRuntime().freeMemory() - heapFreeSize;
+        Log.d("STEGANOGRAPHY", heapFreeSize + "");
+        map.add("image", fsr);
         map.add("messageString", restParams.getMessage());
+
+        map.get("image");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);

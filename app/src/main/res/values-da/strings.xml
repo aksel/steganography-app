@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Steganography</string>
+    <string name="about">Om</string>
+    <string name="about_compression">Billeder overført via apps, som komprimerer vedhæftete filer, f.eks. Facebook\'s Messenger, vil ikke indeholde de gemte beskeder. Dette er på grund af hvordan steganografi fungerer.</string>
+    <string name="about_description">Denne app blev udviklet i forbindelse med første semesters projektet af Software Development bacheloren, på Københavns Erhvervsakademi.</string>
+    <string name="about_developer">Udviklet i 2016 af Aksel Tórgarð</string>
+    <string name="about_webservice">Appen implementerer en RESTful steganografi web-service.</string>
+    <string name="action_settings">Indstillinger</string>
+    <string name="cancel">Annuller</string>
+    <string name="decode">Afkod</string>
+    <string name="decoded_message">Afkodet besked</string>
+    <string name="encode">Indkod</string>
+    <string name="encoded_image">Indkodet billede</string>
+    <string name="imageButtonDescription">Vælg et billede</string>
+    <string name="logo">Logo</string>
+    <string name="message_hint">Indtast besked…</string>
+    <string name="reply">Svar</string>
+    <string name="send_image">Send et billede</string>
+</resources>

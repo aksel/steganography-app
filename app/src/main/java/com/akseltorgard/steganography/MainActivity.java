@@ -1,12 +1,15 @@
 package com.akseltorgard.steganography;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,7 +27,8 @@ import com.akseltorgard.steganography.http.RestParams;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.Random;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements AsyncResponse<RestParams>{
     static final String TAG = "Steganography";
@@ -39,8 +43,12 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
     static final int ENCODE_IMAGE = 6;
 
     static final String KEY_FILEPATH = "Filepath";
+    private static final String KEY_CAMERA_IMAGE_URI = "Camera Image URI";
+    private static final String KEY_LOADING = "Loading";
 
     String mFilePath;
+    Uri mCameraImageUri;
+    boolean mLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
         encodeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                pickImage(PICK_IMAGE_ENCODE);
+                cameraGalleryIntent();
             }
         });
 
@@ -75,6 +83,12 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
 
         if (savedInstanceState != null) {
             mFilePath = savedInstanceState.getString(KEY_FILEPATH);
+            mCameraImageUri = savedInstanceState.getParcelable(KEY_CAMERA_IMAGE_URI);
+            mLoading = savedInstanceState.getBoolean(KEY_LOADING);
+
+            if (mLoading) {
+                findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+            }
         }
     }
 
@@ -90,17 +104,57 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
         dialog.show(fm, TAG);
     }
 
+    /**
+     * Camera and ImageGallery chooser implementation.
+     * Originally from: http://stackoverflow.com/a/12347567
+     */
+    private void cameraGalleryIntent() {
+        final File root = new File(Environment.getExternalStorageDirectory()
+                + File.separator
+                + "DCIM"
+                + File.separator
+                + "STEGANOGRAPHY"
+                + File.separator);
+
+        root.mkdirs();
+        final String fileName = System.currentTimeMillis() + ".jpg";
+        final File sdImageMainDirectory = new File(root, fileName);
+        mCameraImageUri = Uri.fromFile(sdImageMainDirectory);
+
+        // Camera.
+        final List<Intent> cameraIntents = new ArrayList<>();
+        final Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        final PackageManager packageManager = getPackageManager();
+        final List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
+
+        for(ResolveInfo res : listCam) {
+            final String packageName = res.activityInfo.packageName;
+            final Intent intent = new Intent(captureIntent);
+            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+            intent.setPackage(packageName);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, mCameraImageUri);
+            cameraIntents.add(intent);
+        }
+
+        // Filesystem.
+        final Intent galleryIntent = new Intent();
+        galleryIntent.setType("image/*");
+        galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+
+        // Chooser of filesystem options.
+        final Intent chooserIntent = Intent.createChooser(galleryIntent, "Image");
+
+        // Add the camera options.
+        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toArray(new Parcelable[cameraIntents.size()]));
+
+        startActivityForResult(chooserIntent, PICK_IMAGE_ENCODE);
+    }
+
     private void pickImage(int requestCode) {
         Intent i = new Intent();
         i.setType("image/*");
         i.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(i, "Select Image"), requestCode);
-    }
-
-    private void startSendActivity(Uri encodedImagePath) {
-        Intent intent = new Intent(this, SendImageActivity.class);
-        intent.putExtra(EXTRA_FILE_PATH, encodedImagePath);
-        startActivity(intent);
     }
 
     /**
@@ -143,11 +197,25 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
         return Uri.fromFile(file);
     }
 
+    private void startSendActivity(Uri encodedImagePath) {
+        Intent intent = new Intent(this, SendImageActivity.class);
+        intent.putExtra(EXTRA_FILE_PATH, encodedImagePath);
+        startActivity(intent);
+    }
+
+    /**
+     * Necessary for KitKat
+     * @param uri Uri to get path from
+     * @return Path to file.
+     */
     private String uriToFilePath(Uri uri) {
         String filePath;
-        if ("content".equals(uri.getScheme())) {
-            Cursor cursor = getContentResolver().query(uri, new String[] { android.provider.MediaStore.Images.ImageColumns.DATA }, null, null, null);
+        if (uri.getScheme().equals("content")) {
+            String[] imageColumns = new String[] { MediaStore.Images.ImageColumns.DATA };
+
+            Cursor cursor = getContentResolver().query(uri, imageColumns, null, null, null);
             cursor.moveToFirst();
+
             filePath = cursor.getString(0);
             cursor.close();
         } else {
@@ -155,6 +223,69 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
         }
 
         return filePath;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+        mLoading = false;
+
+        if (resultCode == RESULT_OK) {
+            RestParams restParams;
+            Intent intent;
+
+            switch (requestCode) {
+                case PICK_IMAGE_ENCODE :
+                    /**
+                     * Camera and ImageGallery intent implementation from:
+                     * http://stackoverflow.com/a/12347567
+                     */
+                    boolean isCamera;
+
+                    if (data == null) {
+                        isCamera = true;
+                    } else {
+                        final String action = data.getAction();
+                        isCamera = action != null && action.equals(MediaStore.ACTION_IMAGE_CAPTURE);
+                    }
+
+                    Uri selectedImageUri;
+                    if (isCamera) {
+                        selectedImageUri = mCameraImageUri;
+                    } else {
+                        selectedImageUri = data.getData();
+                    }
+
+                    mFilePath = uriToFilePath(selectedImageUri);
+                    intent = new Intent(this, EncodeActivity.class);
+                    intent.putExtra(EXTRA_FILE_PATH, selectedImageUri);
+                    startActivityForResult(intent, ENCODE_IMAGE);
+                    break;
+
+                case PICK_IMAGE_DECODE :
+                    mFilePath = uriToFilePath(data.getData());
+                    restParams = new RestParams(mFilePath, null);
+                    DecodeHttpRequestTask decodeTask = new DecodeHttpRequestTask(this);
+                    findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+                    mLoading = true;
+                    decodeTask.execute(restParams);
+                    break;
+
+                case PICK_IMAGE_SEND :
+                    startSendActivity(data.getData());
+
+                case ENCODE_IMAGE:
+                    String message = data.getStringExtra(EncodeActivity.EXTRA_MESSAGE);
+                    if (message != null && !message.equals("")) {
+                        restParams = new RestParams(mFilePath, message);
+                        EncodeHttpRequestTask encodeTask = new EncodeHttpRequestTask(this);
+                        findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+                        mLoading = true;
+                        encodeTask.execute(restParams);
+                    }
+                    break;
+            }
+        }
     }
 
     @Override
@@ -176,46 +307,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
             case FAILURE:
                 Toast.makeText(this, result.getMessage(), Toast.LENGTH_LONG).show();
                 break;
-        }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-
-        if (resultCode == RESULT_OK) {
-            RestParams restParams;
-
-            switch (requestCode) {
-                case PICK_IMAGE_ENCODE :
-                    mFilePath = uriToFilePath(data.getData());
-                    Intent intent = new Intent(this, EncodeActivity.class);
-                    intent.putExtra(EXTRA_FILE_PATH, data.getData());
-                    startActivityForResult(intent, ENCODE_IMAGE);
-                    break;
-
-                case PICK_IMAGE_DECODE :
-                    mFilePath = uriToFilePath(data.getData());
-                    restParams = new RestParams(mFilePath, null);
-                    DecodeHttpRequestTask decodeTask = new DecodeHttpRequestTask(this);
-                    findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-                    decodeTask.execute(restParams);
-                    break;
-
-                case PICK_IMAGE_SEND :
-                    startSendActivity(data.getData());
-
-                case ENCODE_IMAGE:
-                    String message = data.getStringExtra(EncodeActivity.EXTRA_MESSAGE);
-                    if (message != null && !message.equals("")) {
-                        restParams = new RestParams(mFilePath, message);
-                        EncodeHttpRequestTask encodeTask = new EncodeHttpRequestTask(this);
-                        findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-                        encodeTask.execute(restParams);
-                    }
-                    break;
-            }
         }
     }
 
@@ -244,5 +335,11 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
         if (mFilePath != null) {
             b.putString(KEY_FILEPATH, mFilePath);
         }
+
+        if (mCameraImageUri != null) {
+            b.putParcelable(KEY_CAMERA_IMAGE_URI, mCameraImageUri);
+        }
+
+        b.putBoolean(KEY_LOADING, mLoading);
     }
 }
