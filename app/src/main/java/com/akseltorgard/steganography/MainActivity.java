@@ -109,19 +109,15 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
      * Originally from: http://stackoverflow.com/a/12347567
      */
     private void cameraGalleryIntent() {
-        final File root = new File(Environment.getExternalStorageDirectory()
-                + File.separator
-                + "DCIM"
-                + File.separator
-                + "STEGANOGRAPHY"
-                + File.separator);
+        //Filesystem.
+        final Intent galleryIntent = new Intent();
+        galleryIntent.setType("image/*");
+        galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
 
-        root.mkdirs();
-        final String fileName = System.currentTimeMillis() + ".jpg";
-        final File sdImageMainDirectory = new File(root, fileName);
-        mCameraImageUri = Uri.fromFile(sdImageMainDirectory);
+        //Chooser of filesystem options.
+        final Intent chooserIntent = Intent.createChooser(galleryIntent, "Image");
 
-        // Camera.
+        //Camera.
         final List<Intent> cameraIntents = new ArrayList<>();
         final Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
         final PackageManager packageManager = getPackageManager();
@@ -136,16 +132,23 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
             cameraIntents.add(intent);
         }
 
-        // Filesystem.
-        final Intent galleryIntent = new Intent();
-        galleryIntent.setType("image/*");
-        galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+        //Camera apps were found
+        if (!cameraIntents.isEmpty()) {
+            final File root = new File(Environment.getExternalStorageDirectory()
+                    + File.separator
+                    + "DCIM"
+                    + File.separator
+                    + "Steganography"
+                    + File.separator);
 
-        // Chooser of filesystem options.
-        final Intent chooserIntent = Intent.createChooser(galleryIntent, "Image");
+            root.mkdirs();
+            final String fileName = System.currentTimeMillis() + ".jpg";
+            final File sdImageMainDirectory = new File(root, fileName);
+            mCameraImageUri = Uri.fromFile(sdImageMainDirectory);
 
-        // Add the camera options.
-        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toArray(new Parcelable[cameraIntents.size()]));
+            //Add the camera options.
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toArray(new Parcelable[cameraIntents.size()]));
+        }
 
         startActivityForResult(chooserIntent, PICK_IMAGE_ENCODE);
     }

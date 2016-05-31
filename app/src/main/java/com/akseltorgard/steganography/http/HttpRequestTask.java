@@ -9,7 +9,7 @@ import org.springframework.web.client.RestClientException;
 
 public abstract class HttpRequestTask extends AsyncTask<RestParams, Void, RestParams> {
 
-    protected static final String WEBSERVICE = "http://52.28.29.249/steganography/steganography";
+    protected static final String WEBSERVICE = "http://ws.steganography.xyz/steganography/steganography";
     protected static final String ENCODE = "/encodeimage";
     protected static final String DECODE = "/decodeimage";
 
