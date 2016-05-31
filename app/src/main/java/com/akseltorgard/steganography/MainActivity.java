@@ -1,5 +1,7 @@
 package com.akseltorgard.steganography;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,6 +12,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -39,8 +42,13 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
     static final int PICK_IMAGE_ENCODE = 3;
     static final int PICK_IMAGE_DECODE = 4;
     static final int PICK_IMAGE_SEND   = 5;
-
     static final int ENCODE_IMAGE = 6;
+
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
     static final String KEY_FILEPATH = "Filepath";
     private static final String KEY_CAMERA_IMAGE_URI = "Camera Image URI";
@@ -90,6 +98,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
                 findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
             }
         }
+
+        verifyStoragePermissions(this);
     }
 
     private void createAboutDialog() {
@@ -349,5 +359,25 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
         }
 
         b.putBoolean(KEY_LOADING, mLoading);
+    }
+
+    /**
+     * http://stackoverflow.com/a/33292700
+     * Checks if the app has permission to write to device storage
+     * If the app does not has permission then the user will be prompted to grant permissions
+     * @param activity
+     */
+    public static void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
     }
 }
