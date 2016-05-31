@@ -114,26 +114,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
         galleryIntent.setType("image/*");
         galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
 
-        //Chooser of filesystem options.
-        final Intent chooserIntent = Intent.createChooser(galleryIntent, "Image");
-
-        //Camera.
-        final List<Intent> cameraIntents = new ArrayList<>();
-        final Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-        final PackageManager packageManager = getPackageManager();
-        final List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
-
-        for(ResolveInfo res : listCam) {
-            final String packageName = res.activityInfo.packageName;
-            final Intent intent = new Intent(captureIntent);
-            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            intent.setPackage(packageName);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, mCameraImageUri);
-            cameraIntents.add(intent);
-        }
-
-        //Camera apps were found
-        if (!cameraIntents.isEmpty()) {
+        //Initialize mCameraImageUri
+        {
             final File root = new File(Environment.getExternalStorageDirectory()
                     + File.separator
                     + "DCIM"
@@ -145,7 +127,30 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
             final String fileName = System.currentTimeMillis() + ".jpg";
             final File sdImageMainDirectory = new File(root, fileName);
             mCameraImageUri = Uri.fromFile(sdImageMainDirectory);
+        }
 
+        final List<Intent> cameraIntents = new ArrayList<>();
+        //Get Camera intents
+        {
+            final Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+            final PackageManager packageManager = getPackageManager();
+            final List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
+
+            for(ResolveInfo res : listCam) {
+                final String packageName = res.activityInfo.packageName;
+                final Intent intent = new Intent(captureIntent);
+                intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+                intent.setPackage(packageName);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, mCameraImageUri);
+                cameraIntents.add(intent);
+            }
+        }
+
+        //Chooser of filesystem options.
+        final Intent chooserIntent = Intent.createChooser(galleryIntent, "Image");
+
+        //Camera apps were found
+        if (!cameraIntents.isEmpty()) {
             //Add the camera options.
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toArray(new Parcelable[cameraIntents.size()]));
         }
@@ -245,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
                      */
                     boolean isCamera;
 
-                    if (data == null) {
+                    if (data == null || data.getScheme().equals("file")) {
                         isCamera = true;
                     } else {
                         final String action = data.getAction();
