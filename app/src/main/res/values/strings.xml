@@ -18,4 +18,5 @@
     <string name="send_image">Send Image</string>
     <string name="cancel">Cancel</string>
     <string name="logo">Logo</string>
+    <string name="filepath">Filepath:</string>
 </resources>

@@ -1,22 +1,21 @@
 package com.akseltorgard.steganography;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.database.Cursor;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -29,7 +28,6 @@ import com.akseltorgard.steganography.http.EncodeHttpRequestTask;
 import com.akseltorgard.steganography.http.RestParams;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,14 +35,13 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
     static final String TAG = "Steganography";
 
     static final String EXTRA_FILE_PATH = "Extra File Path";
-    static final String EXTRA_ACTION = "Extra Action";
 
     static final int PICK_IMAGE_ENCODE = 3;
     static final int PICK_IMAGE_DECODE = 4;
     static final int PICK_IMAGE_SEND   = 5;
     static final int ENCODE_IMAGE = 6;
 
-    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static final int REQUEST_EXTERNAL_STORAGE = 7;
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -69,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
         encodeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                cameraGalleryIntent();
+                startCameraGalleryChooser();
             }
         });
 
@@ -99,34 +96,44 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
             }
         }
 
-        verifyStoragePermissions(this);
-    }
+        //Since Marshmallow, need to ask for permission to read/write storage.
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
 
-    private void createAboutDialog() {
-        FragmentManager fm = getSupportFragmentManager();
-        AboutDialogFragment dialog = AboutDialogFragment.newInstance();
-        dialog.show(fm, TAG);
-    }
-
-    private void createDecodeDialog(String message) {
-        FragmentManager fm = getSupportFragmentManager();
-        DecodedMessageDialogFragment dialog = DecodedMessageDialogFragment.newInstance(message);
-        dialog.show(fm, TAG);
+                ActivityCompat.requestPermissions(
+                        this,
+                        PERMISSIONS_STORAGE,
+                        REQUEST_EXTERNAL_STORAGE
+                );
+            }
+        }
     }
 
     /**
      * Camera and ImageGallery chooser implementation.
      * Originally from: http://stackoverflow.com/a/12347567
      */
-    private void cameraGalleryIntent() {
-        //Filesystem.
-        final Intent galleryIntent = new Intent();
-        galleryIntent.setType("image/*");
-        galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+    private void startCameraGalleryChooser() {
+        //Image gallery intent
+        Intent galleryIntent;
+
+        //Post-KitKat, use provider.MediaStore.Images instead of manually setting type to "image/*"
+        if (Build.VERSION.SDK_INT > 19) {
+            galleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        } else {
+            galleryIntent = new Intent();
+            galleryIntent.setType("image/*");
+            galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+        }
+
+        //Chooser
+        Intent chooserIntent = Intent.createChooser(galleryIntent, "Image");
 
         //Initialize mCameraImageUri
         {
-            final File root = new File(Environment.getExternalStorageDirectory()
+            File root = new File(Environment.getExternalStorageDirectory()
                     + File.separator
                     + "DCIM"
                     + File.separator
@@ -134,113 +141,55 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
                     + File.separator);
 
             root.mkdirs();
-            final String fileName = System.currentTimeMillis() + ".jpg";
-            final File sdImageMainDirectory = new File(root, fileName);
+            String fileName = System.currentTimeMillis() + ".jpg";
+            File sdImageMainDirectory = new File(root, fileName);
             mCameraImageUri = Uri.fromFile(sdImageMainDirectory);
         }
 
-        final List<Intent> cameraIntents = new ArrayList<>();
-        //Get Camera intents
+        //Add Camera options
         {
-            final Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-            final PackageManager packageManager = getPackageManager();
-            final List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
+            List<Intent> cameraIntents = new ArrayList<>();
+
+            Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+            PackageManager packageManager = getPackageManager();
+            List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
 
             for(ResolveInfo res : listCam) {
-                final String packageName = res.activityInfo.packageName;
-                final Intent intent = new Intent(captureIntent);
+                String packageName = res.activityInfo.packageName;
+                Intent intent = new Intent(captureIntent);
                 intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
                 intent.setPackage(packageName);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, mCameraImageUri);
                 cameraIntents.add(intent);
             }
-        }
 
-        //Chooser of filesystem options.
-        final Intent chooserIntent = Intent.createChooser(galleryIntent, "Image");
-
-        //Camera apps were found
-        if (!cameraIntents.isEmpty()) {
-            //Add the camera options.
-            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toArray(new Parcelable[cameraIntents.size()]));
+            //Camera apps were found
+            if (!cameraIntents.isEmpty()) {
+                //Add the camera options to chooser
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toArray(new Parcelable[cameraIntents.size()]));
+            }
         }
 
         startActivityForResult(chooserIntent, PICK_IMAGE_ENCODE);
     }
 
     private void pickImage(int requestCode) {
-        Intent i = new Intent();
-        i.setType("image/*");
-        i.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(i, "Select Image"), requestCode);
-    }
-
-    /**
-     * http://stackoverflow.com/a/21191262
-     * @param encodedImageBytes Encoded image as byte array.
-     * @return Uri to saved encoded image.
-     */
-    private Uri saveEncodedImage(byte[] encodedImageBytes) {
-        String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-
-        File myDir = new File(root + "/encoded_images");
-
-        myDir.mkdirs();
-
-        String filename = System.currentTimeMillis() + ".png";
-
-        File file = new File(myDir, filename);
-
-        try {
-            FileOutputStream out = new FileOutputStream(file);
-            out.write(encodedImageBytes);
-            out.flush();
-            out.close();
+        //Post-KitKat, use provider.MediaStore.Images instead of manually setting type to "image/*"
+        if (Build.VERSION.SDK_INT > 19) {
+            Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(Intent.createChooser(intent, "Select Picture"), requestCode);
+        } else {
+            Intent intent = new Intent();
+            intent.setType("image/*");
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+            startActivityForResult(Intent.createChooser(intent, "Select Picture"), requestCode);
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        // Tell the media scanner about the new file so that it is
-        // immediately available to the user.
-        MediaScannerConnection.scanFile(this, new String[] { file.toString() }, null,
-                new MediaScannerConnection.OnScanCompletedListener() {
-                    public void onScanCompleted(String path, Uri uri) {
-                        Log.i("ExternalStorage", "Scanned " + path + ":");
-                        Log.i("ExternalStorage", "-> uri=" + uri);
-                    }
-                });
-
-        return Uri.fromFile(file);
     }
 
     private void startSendActivity(Uri encodedImagePath) {
         Intent intent = new Intent(this, SendImageActivity.class);
         intent.putExtra(EXTRA_FILE_PATH, encodedImagePath);
         startActivity(intent);
-    }
-
-    /**
-     * Necessary for KitKat
-     * @param uri Uri to get path from
-     * @return Path to file.
-     */
-    private String uriToFilePath(Uri uri) {
-        String filePath;
-        if (uri.getScheme().equals("content")) {
-            String[] imageColumns = new String[] { MediaStore.Images.ImageColumns.DATA };
-
-            Cursor cursor = getContentResolver().query(uri, imageColumns, null, null, null);
-            cursor.moveToFirst();
-
-            filePath = cursor.getString(0);
-            cursor.close();
-        } else {
-            filePath = uri.getPath();
-        }
-
-        return filePath;
     }
 
     @Override
@@ -274,14 +223,14 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
                         selectedImageUri = data.getData();
                     }
 
-                    mFilePath = uriToFilePath(selectedImageUri);
+                    mFilePath = FileUtils.uriToFilePath(this, selectedImageUri);
                     intent = new Intent(this, EncodeActivity.class);
                     intent.putExtra(EXTRA_FILE_PATH, selectedImageUri);
                     startActivityForResult(intent, ENCODE_IMAGE);
                     break;
 
                 case PICK_IMAGE_DECODE :
-                    mFilePath = uriToFilePath(data.getData());
+                    mFilePath = FileUtils.uriToFilePath(this, data.getData());
                     restParams = new RestParams(mFilePath, null);
                     DecodeHttpRequestTask decodeTask = new DecodeHttpRequestTask(this);
                     findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
@@ -308,23 +257,46 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
 
     @Override
     public void processResult(RestParams result, Type t) {
-
         findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+
+        FragmentManager fm;
 
         switch (t) {
             case ENCODE_SUCCESS :
                 byte[] bytes = result.getEncodedImageBytes();
-                Uri encodedImagePath = saveEncodedImage(bytes);
+                Uri encodedImagePath = FileUtils.saveEncodedImage(this, bytes);
                 startSendActivity(encodedImagePath);
                 break;
 
             case DECODE_SUCCESS :
-                createDecodeDialog(result.getMessage());
+                fm = getSupportFragmentManager();
+                DecodedMessageDialogFragment dialog = DecodedMessageDialogFragment.newInstance(result.getMessage());
+                dialog.show(fm, TAG);
                 break;
 
             case FAILURE:
                 Toast.makeText(this, result.getMessage(), Toast.LENGTH_LONG).show();
                 break;
+        }
+    }
+
+    /**
+     * Marshmallow requires permissions to be granted at run-time.
+     * @param requestCode Request code
+     * @param permissions Requested permissions
+     * @param grantResults Whether permissions were granted.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_EXTERNAL_STORAGE: {
+                if (grantResults.length == 0 || grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                    Toast.makeText(this, "The app needs to access storage to work.", Toast.LENGTH_LONG).show();
+                    findViewById(R.id.button_encode).setEnabled(false);
+                    findViewById(R.id.button_decode).setEnabled(false);
+                    findViewById(R.id.button_send).setEnabled(false);
+                }
+            }
         }
     }
 
@@ -339,7 +311,9 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_item_about:
-                createAboutDialog();
+                FragmentManager fm = getSupportFragmentManager();
+                AboutDialogFragment dialog = AboutDialogFragment.newInstance();
+                dialog.show(fm, TAG);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -359,25 +333,5 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
         }
 
         b.putBoolean(KEY_LOADING, mLoading);
-    }
-
-    /**
-     * http://stackoverflow.com/a/33292700
-     * Checks if the app has permission to write to device storage
-     * If the app does not has permission then the user will be prompted to grant permissions
-     * @param activity
-     */
-    public static void verifyStoragePermissions(Activity activity) {
-        // Check if we have write permission
-        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(
-                    activity,
-                    PERMISSIONS_STORAGE,
-                    REQUEST_EXTERNAL_STORAGE
-            );
-        }
     }
 }

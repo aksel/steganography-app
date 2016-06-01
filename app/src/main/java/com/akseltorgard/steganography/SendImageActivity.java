@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 public class SendImageActivity extends ImageActivity {
 
@@ -25,5 +26,8 @@ public class SendImageActivity extends ImageActivity {
                 startActivity(Intent.createChooser(sendIntent,"Send"));
             }
         });
+
+        TextView filePathTextView = (TextView) findViewById(R.id.textView_filePath);
+        filePathTextView.setText(FileUtils.uriToFilePath(this,mFilePath));
     }
 }
