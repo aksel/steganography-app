@@ -40,3 +40,8 @@ captures/
 # Keystore files
 *.jks
 
+.idea/workspace.xml
+projectFilesBackup/.idea/workspace.xml
+.idea/workspace.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/inspectionProfiles/Project_Default.xml
