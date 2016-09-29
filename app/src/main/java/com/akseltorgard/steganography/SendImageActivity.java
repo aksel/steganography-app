@@ -7,6 +7,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.akseltorgard.steganography.utils.FileUtils;
+
 public class SendImageActivity extends ImageActivity {
 
     @Override

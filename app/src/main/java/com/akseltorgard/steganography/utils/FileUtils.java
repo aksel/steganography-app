@@ -1,4 +1,4 @@
-package com.akseltorgard.steganography;
+package com.akseltorgard.steganography.utils;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -11,14 +11,14 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileOutputStream;
 
-class FileUtils {
+public class FileUtils {
 
     /**
      * Converts Uri to filepath.
      * @param uri Uri to get path from
      * @return Path to file.
      */
-    static String uriToFilePath(Context context, Uri uri) {
+    public static String uriToFilePath(Context context, Uri uri) {
         String filePath;
         if (uri.getScheme().equals("content")) {
             String[] imageColumns = new String[] { MediaStore.Images.ImageColumns.DATA };
@@ -40,7 +40,7 @@ class FileUtils {
      * @param encodedImageBytes Encoded image as byte array.
      * @return Uri to saved encoded image.
      */
-    static Uri saveEncodedImage(Context context, byte[] encodedImageBytes) {
+    public static Uri saveEncodedImage(Context context, byte[] encodedImageBytes) {
         String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
         String folder = "\\encoded_images";
         File myDir = new File(root + folder);

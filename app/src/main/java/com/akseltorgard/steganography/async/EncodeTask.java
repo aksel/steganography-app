@@ -3,7 +3,7 @@ package com.akseltorgard.steganography.async;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import com.akseltorgard.steganography.Steganography;
+import com.akseltorgard.steganography.utils.SteganographyUtils;
 
 public class EncodeTask extends SteganographyTask {
     public EncodeTask(AsyncResponse<SteganographyParams> delegate) {
@@ -20,7 +20,7 @@ public class EncodeTask extends SteganographyTask {
 
         Bitmap image = BitmapFactory.decodeFile(steganographyParams.getFilePath());
 
-        image = Steganography.encode(image, steganographyParams.getMessage());
+        image = SteganographyUtils.encode(image, steganographyParams.getMessage());
 
         //TODO: Save Encoded image
 

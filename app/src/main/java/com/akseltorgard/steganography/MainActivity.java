@@ -27,6 +27,7 @@ import com.akseltorgard.steganography.async.AsyncResponse;
 import com.akseltorgard.steganography.async.DecodeTask;
 import com.akseltorgard.steganography.async.EncodeTask;
 import com.akseltorgard.steganography.async.SteganographyParams;
+import com.akseltorgard.steganography.utils.FileUtils;
 
 import java.io.File;
 import java.util.ArrayList;

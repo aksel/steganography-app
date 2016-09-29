@@ -1,8 +1,8 @@
-package com.akseltorgard.steganography;
+package com.akseltorgard.steganography.utils;
 
 import android.graphics.Bitmap;
 
-public class Steganography {
+public class SteganographyUtils {
 
     public static Bitmap encode(Bitmap image, String message) {
         return image;
