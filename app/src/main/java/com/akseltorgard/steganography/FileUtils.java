@@ -11,14 +11,14 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileOutputStream;
 
-public class FileUtils {
+class FileUtils {
 
     /**
      * Converts Uri to filepath.
      * @param uri Uri to get path from
      * @return Path to file.
      */
-    public static String uriToFilePath(Context context, Uri uri) {
+    static String uriToFilePath(Context context, Uri uri) {
         String filePath;
         if (uri.getScheme().equals("content")) {
             String[] imageColumns = new String[] { MediaStore.Images.ImageColumns.DATA };
@@ -40,9 +40,9 @@ public class FileUtils {
      * @param encodedImageBytes Encoded image as byte array.
      * @return Uri to saved encoded image.
      */
-    public static Uri saveEncodedImage(Context context, byte[] encodedImageBytes) {
+    static Uri saveEncodedImage(Context context, byte[] encodedImageBytes) {
         String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-        String folder = "encoded_images";
+        String folder = "\\encoded_images";
         File myDir = new File(root + folder);
 
         myDir.mkdirs();
