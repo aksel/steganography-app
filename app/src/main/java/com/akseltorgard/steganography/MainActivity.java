@@ -24,6 +24,8 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.akseltorgard.steganography.async.AsyncResponse;
+import com.akseltorgard.steganography.async.DecodeTask;
+import com.akseltorgard.steganography.async.EncodeTask;
 import com.akseltorgard.steganography.async.SteganographyParams;
 
 import java.io.File;
@@ -195,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Ste
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (resultCode == RESULT_OK) {
-            //RestParams restParams;
+            SteganographyParams steganographyParams;
             Intent intent;
 
             switch (requestCode) {
@@ -221,18 +223,25 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Ste
                     }
 
                     mFilePath = FileUtils.uriToFilePath(this, selectedImageUri);
+
                     intent = new Intent(this, EncodeActivity.class);
                     intent.putExtra(EXTRA_FILE_PATH, selectedImageUri);
+
                     startActivityForResult(intent, ENCODE_IMAGE);
+
                     break;
 
                 case PICK_IMAGE_DECODE :
-//                    mFilePath = FileUtils.uriToFilePath(this, data.getData());
-//                    restParams = new RestParams(mFilePath, null);
-//                    DecodeHttpRequestTask decodeTask = new DecodeHttpRequestTask(this);
-//                    findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-//                    mLoading = true;
-//                    decodeTask.execute(restParams);
+                    findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+                    mLoading = true;
+
+                    mFilePath = FileUtils.uriToFilePath(this, data.getData());
+
+                    steganographyParams = new SteganographyParams(mFilePath, null);
+
+                    DecodeTask decodeTask = new DecodeTask(this);
+                    decodeTask.execute(steganographyParams);
+
                     break;
 
                 case PICK_IMAGE_SEND :
@@ -240,13 +249,18 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Ste
 
                 case ENCODE_IMAGE:
                     String message = data.getStringExtra(EncodeActivity.EXTRA_MESSAGE);
-                    if (message != null && !message.equals("")) {
-//                        restParams = new RestParams(mFilePath, message);
-//                        EncodeHttpRequestTask encodeTask = new EncodeHttpRequestTask(this);
-//                        findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-//                        mLoading = true;
-//                        encodeTask.execute(restParams);
+                    if (message == null || message.equals("")) {
+                        break;
                     }
+
+                    findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+                    mLoading = true;
+
+                    steganographyParams = new SteganographyParams(mFilePath, message);
+
+                    EncodeTask encodeTask = new EncodeTask(this);
+                    encodeTask.execute(steganographyParams);
+
                     break;
             }
         }
@@ -254,23 +268,18 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Ste
 
     @Override
     public void processResult(SteganographyParams result, Type t) {
-
         mLoading = false;
         findViewById(R.id.loadingPanel).setVisibility(View.GONE);
 
-        FragmentManager fm;
-
         switch (t) {
             case ENCODE_SUCCESS :
-//                byte[] bytes = result.getEncodedImageBytes();
-//                Uri encodedImagePath = FileUtils.saveEncodedImage(this, bytes);
-//                startSendActivity(encodedImagePath);
+                startSendActivity(Uri.fromFile(new File(result.getFilePath())));
                 break;
 
             case DECODE_SUCCESS :
-//                fm = getSupportFragmentManager();
-//                DecodedMessageDialogFragment dialog = DecodedMessageDialogFragment.newInstance(result.getMessage());
-//                dialog.show(fm, TAG);
+                FragmentManager fm = getSupportFragmentManager();
+                DecodedMessageDialogFragment dialog = DecodedMessageDialogFragment.newInstance(result.getMessage());
+                dialog.show(fm, TAG);
                 break;
 
             case FAILURE:

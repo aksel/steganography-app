@@ -1,6 +1,7 @@
 package com.akseltorgard.steganography.async;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 public abstract class SteganographyTask extends AsyncTask<SteganographyParams, Void, SteganographyParams> {
 
@@ -24,10 +25,14 @@ public abstract class SteganographyTask extends AsyncTask<SteganographyParams, V
 
     @Override
     protected void onPostExecute(SteganographyParams result) {
-        //mDelegate.processResult(result, result.getType());
+        mDelegate.processResult(result, result.getType());
     }
 
-    protected SteganographyParams handleFailure(Exception e, SteganographyParams steganographyParams) {
+    private SteganographyParams handleFailure(Exception e, SteganographyParams steganographyParams) {
+        steganographyParams.setMessage("Error: " + e.getCause().getMessage());
+        steganographyParams.setType(AsyncResponse.Type.FAILURE);
+
+        Log.e("SteganographyTask", steganographyParams.getMessage(), e);
         return steganographyParams;
     }
 }
