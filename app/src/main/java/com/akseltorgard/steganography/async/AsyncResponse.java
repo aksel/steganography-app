@@ -1,4 +1,4 @@
-package com.akseltorgard.steganography;
+package com.akseltorgard.steganography.async;
 
 public interface AsyncResponse<T> {
 

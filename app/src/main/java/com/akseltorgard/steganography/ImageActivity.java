@@ -6,7 +6,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ImageView;
 
-public abstract class ImageActivity extends AppCompatActivity implements AsyncResponse<Bitmap>{
+import com.akseltorgard.steganography.async.AsyncResponse;
+import com.akseltorgard.steganography.async.ImageLoaderTask;
+
+public abstract class ImageActivity extends AppCompatActivity implements AsyncResponse<Bitmap> {
 
     static final String KEY_FILEPATH = "Key FilePath";
 
@@ -35,7 +38,7 @@ public abstract class ImageActivity extends AppCompatActivity implements AsyncRe
 
     private void loadImage() {
         if (mFilePath != null) {
-            new AsyncImageLoader(this,this).execute(mFilePath);
+            new ImageLoaderTask(this,this).execute(mFilePath);
         }
     }
 

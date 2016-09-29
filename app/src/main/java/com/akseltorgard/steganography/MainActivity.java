@@ -23,15 +23,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.akseltorgard.steganography.http.DecodeHttpRequestTask;
-import com.akseltorgard.steganography.http.EncodeHttpRequestTask;
-import com.akseltorgard.steganography.http.RestParams;
+import com.akseltorgard.steganography.async.AsyncResponse;
+import com.akseltorgard.steganography.async.SteganographyParams;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements AsyncResponse<RestParams>{
+public class MainActivity extends AppCompatActivity implements AsyncResponse<SteganographyParams> {
     static final String TAG = "Steganography";
 
     static final String EXTRA_FILE_PATH = "Extra File Path";
@@ -196,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (resultCode == RESULT_OK) {
-            RestParams restParams;
+            //RestParams restParams;
             Intent intent;
 
             switch (requestCode) {
@@ -228,12 +227,12 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
                     break;
 
                 case PICK_IMAGE_DECODE :
-                    mFilePath = FileUtils.uriToFilePath(this, data.getData());
-                    restParams = new RestParams(mFilePath, null);
-                    DecodeHttpRequestTask decodeTask = new DecodeHttpRequestTask(this);
-                    findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-                    mLoading = true;
-                    decodeTask.execute(restParams);
+//                    mFilePath = FileUtils.uriToFilePath(this, data.getData());
+//                    restParams = new RestParams(mFilePath, null);
+//                    DecodeHttpRequestTask decodeTask = new DecodeHttpRequestTask(this);
+//                    findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+//                    mLoading = true;
+//                    decodeTask.execute(restParams);
                     break;
 
                 case PICK_IMAGE_SEND :
@@ -242,11 +241,11 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
                 case ENCODE_IMAGE:
                     String message = data.getStringExtra(EncodeActivity.EXTRA_MESSAGE);
                     if (message != null && !message.equals("")) {
-                        restParams = new RestParams(mFilePath, message);
-                        EncodeHttpRequestTask encodeTask = new EncodeHttpRequestTask(this);
-                        findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-                        mLoading = true;
-                        encodeTask.execute(restParams);
+//                        restParams = new RestParams(mFilePath, message);
+//                        EncodeHttpRequestTask encodeTask = new EncodeHttpRequestTask(this);
+//                        findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+//                        mLoading = true;
+//                        encodeTask.execute(restParams);
                     }
                     break;
             }
@@ -254,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
     }
 
     @Override
-    public void processResult(RestParams result, Type t) {
+    public void processResult(SteganographyParams result, Type t) {
 
         mLoading = false;
         findViewById(R.id.loadingPanel).setVisibility(View.GONE);
@@ -263,19 +262,19 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
 
         switch (t) {
             case ENCODE_SUCCESS :
-                byte[] bytes = result.getEncodedImageBytes();
-                Uri encodedImagePath = FileUtils.saveEncodedImage(this, bytes);
-                startSendActivity(encodedImagePath);
+//                byte[] bytes = result.getEncodedImageBytes();
+//                Uri encodedImagePath = FileUtils.saveEncodedImage(this, bytes);
+//                startSendActivity(encodedImagePath);
                 break;
 
             case DECODE_SUCCESS :
-                fm = getSupportFragmentManager();
-                DecodedMessageDialogFragment dialog = DecodedMessageDialogFragment.newInstance(result.getMessage());
-                dialog.show(fm, TAG);
+//                fm = getSupportFragmentManager();
+//                DecodedMessageDialogFragment dialog = DecodedMessageDialogFragment.newInstance(result.getMessage());
+//                dialog.show(fm, TAG);
                 break;
 
             case FAILURE:
-                Toast.makeText(this, result.getMessage(), Toast.LENGTH_LONG).show();
+//                Toast.makeText(this, result.getMessage(), Toast.LENGTH_LONG).show();
                 break;
         }
     }

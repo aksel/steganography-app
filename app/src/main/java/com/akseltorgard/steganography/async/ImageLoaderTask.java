@@ -1,4 +1,4 @@
-package com.akseltorgard.steganography;
+package com.akseltorgard.steganography.async;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -10,12 +10,12 @@ import android.os.ParcelFileDescriptor;
 import java.io.FileDescriptor;
 import java.io.IOException;
 
-public class AsyncImageLoader extends AsyncTask<Uri, Integer, Bitmap> {
+public class ImageLoaderTask extends AsyncTask<Uri, Integer, Bitmap> {
 
     private AsyncResponse<Bitmap> mDelegate;
     private Context mContext;
 
-    public AsyncImageLoader(AsyncResponse<Bitmap> delegate, Context context) {
+    public ImageLoaderTask(AsyncResponse<Bitmap> delegate, Context context) {
         mDelegate = delegate;
         mContext  = context;
     }
