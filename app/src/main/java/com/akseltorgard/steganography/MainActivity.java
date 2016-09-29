@@ -194,8 +194,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-        mLoading = false;
 
         if (resultCode == RESULT_OK) {
             RestParams restParams;
@@ -257,6 +255,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Res
 
     @Override
     public void processResult(RestParams result, Type t) {
+
+        mLoading = false;
         findViewById(R.id.loadingPanel).setVisibility(View.GONE);
 
         FragmentManager fm;
