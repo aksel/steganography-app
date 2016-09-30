@@ -1,14 +1,12 @@
 package com.akseltorgard.steganography.utils;
 
-import android.graphics.Bitmap;
-
 public class SteganographyUtils {
 
-    public static Bitmap encode(Bitmap image, String message) {
-        return image;
+    public static int[] encode(int[] pixels, String message) {
+        return pixels;
     }
 
-    public static String decode(Bitmap image) {
+    public static String decode(int[] pixels) {
         return "Hello world!";
     }
 }

@@ -3,6 +3,7 @@ package com.akseltorgard.steganography.async;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.akseltorgard.steganography.utils.BitmapUtils;
 import com.akseltorgard.steganography.utils.SteganographyUtils;
 
 public class DecodeTask extends SteganographyTask {
@@ -17,8 +18,9 @@ public class DecodeTask extends SteganographyTask {
      */
     @Override
     protected SteganographyParams execute(SteganographyParams steganographyParams) {
-        Bitmap image = BitmapFactory.decodeFile(steganographyParams.getFilePath());
-        String message = SteganographyUtils.decode(image);
+        Bitmap bitmap = BitmapFactory.decodeFile(steganographyParams.getFilePath());
+
+        String message = SteganographyUtils.decode(BitmapUtils.getPixels(bitmap));
 
         steganographyParams.setMessage(message);
         steganographyParams.setType(AsyncResponse.Type.DECODE_SUCCESS);
