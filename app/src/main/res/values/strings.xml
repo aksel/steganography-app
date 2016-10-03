@@ -8,7 +8,7 @@
     <string name="reply">Reply</string>
     <string name="about">About</string>
     <string name="about_description">This app was developed as a first semester project of the Software Development bachelor, at the Copenhagen School of Design and Technology.</string>
-    <string name="about_webservice">It implements a RESTful steganography web service.</string>
+    <string name="about_webservice">It originally implemented a RESTful steganography web service. This functionality has since been moved to the app itself.</string>
     <string name="about_compression">Due to the nature of steganography, images transmitted with messaging apps that compress attachments, e.g. Facebook\'s Messenger, won\'t contain the hidden message.</string>
     <string name="about_developer">Developed in 2016 by Aksel Tórgarð</string>
     <string name="decoded_message">Decoded Message</string>
