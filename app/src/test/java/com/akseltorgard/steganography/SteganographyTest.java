@@ -1,3 +1,5 @@
+package com.akseltorgard.steganography;
+
 import com.akseltorgard.steganography.utils.SteganographyUtils;
 
 import junit.framework.Assert;
