@@ -2,6 +2,7 @@ package com.akseltorgard.steganography.utils;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
@@ -36,11 +37,11 @@ public class FileUtils {
     }
 
     /**
-     * http://stackoverflow.com/a/21191262
-     * @param encodedImageBytes Encoded image as byte array.
+     * Save bitmap to file.
+     * @param bitmap Encoded image.
      * @return Uri to saved encoded image.
      */
-    public static Uri saveEncodedImage(Context context, byte[] encodedImageBytes) {
+    public static Uri saveBitmap(Bitmap bitmap) {
         String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
         String folder = "\\encoded_images";
         File myDir = new File(root + folder);
@@ -53,7 +54,9 @@ public class FileUtils {
 
         try {
             FileOutputStream out = new FileOutputStream(file);
-            out.write(encodedImageBytes);
+
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+
             out.flush();
             out.close();
         }
@@ -62,6 +65,10 @@ public class FileUtils {
             return null;
         }
 
+        return Uri.fromFile(file);
+    }
+
+    public static void scanFile(Context context, File file) {
         // Tell the media scanner about the new file so that it is
         // immediately available to the user.
         MediaScannerConnection.scanFile(context, new String[] { file.toString() }, null,
@@ -70,8 +77,7 @@ public class FileUtils {
                         Log.i("ExternalStorage", "Scanned " + path + ":");
                         Log.i("ExternalStorage", "-> uri=" + uri);
                     }
-                });
-
-        return Uri.fromFile(file);
+                }
+        );
     }
 }

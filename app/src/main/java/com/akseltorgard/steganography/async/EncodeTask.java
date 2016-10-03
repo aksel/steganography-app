@@ -2,9 +2,13 @@ package com.akseltorgard.steganography.async;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 
 import com.akseltorgard.steganography.utils.BitmapUtils;
+import com.akseltorgard.steganography.utils.FileUtils;
 import com.akseltorgard.steganography.utils.SteganographyUtils;
+
+import static com.akseltorgard.steganography.utils.FileUtils.saveBitmap;
 
 public class EncodeTask extends SteganographyTask {
     public EncodeTask(AsyncResponse<SteganographyParams> delegate) {
@@ -26,8 +30,11 @@ public class EncodeTask extends SteganographyTask {
                 steganographyParams.getMessage()
         );
 
-        //TODO: Insert encoded pixels back into image
-        //TODO: Save Encoded image
+        BitmapUtils.setPixels(bitmap, encodedPixels);
+
+        Uri resultUri = FileUtils.saveBitmap(bitmap);
+
+        steganographyParams.setResultUri(resultUri);
 
         steganographyParams.setType(AsyncResponse.Type.ENCODE_SUCCESS);
         return steganographyParams;

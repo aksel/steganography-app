@@ -15,6 +15,9 @@ public class BitmapUtils {
     }
 
     public static void setPixels(Bitmap bitmap, int[] pixels) {
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
 
+        bitmap.setPixels(pixels, 0, w, 0, 0, w, h);
     }
 }

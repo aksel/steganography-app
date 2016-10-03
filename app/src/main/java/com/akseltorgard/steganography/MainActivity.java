@@ -274,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Ste
 
         switch (t) {
             case ENCODE_SUCCESS :
-                startSendActivity(Uri.fromFile(new File(result.getFilePath())));
+                startSendActivity(result.getResultUri());
                 break;
 
             case DECODE_SUCCESS :
@@ -284,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Ste
                 break;
 
             case FAILURE:
-//                Toast.makeText(this, result.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, result.getMessage(), Toast.LENGTH_LONG).show();
                 break;
         }
     }
