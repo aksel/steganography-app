@@ -37,7 +37,7 @@ public class BitmapUtils {
      * @param imgIn - Source image. It will be released, and should not be used more
      * @return a copy of imgIn, but muttable.
      */
-    public static Bitmap convertToMutable(Bitmap imgIn) {
+    private static Bitmap convertToMutable(Bitmap imgIn) {
         try {
             //this is the file going to use temporally to save the bytes.
             // This file will not be a image, it will store the raw image data.

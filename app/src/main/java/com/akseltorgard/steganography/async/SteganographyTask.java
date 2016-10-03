@@ -3,11 +3,11 @@ package com.akseltorgard.steganography.async;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public abstract class SteganographyTask extends AsyncTask<SteganographyParams, Void, SteganographyParams> {
+abstract class SteganographyTask extends AsyncTask<SteganographyParams, Void, SteganographyParams> {
 
-    protected AsyncResponse<SteganographyParams> mDelegate;
+    private AsyncResponse<SteganographyParams> mDelegate;
 
-    public SteganographyTask(AsyncResponse<SteganographyParams> delegate) {
+    SteganographyTask(AsyncResponse<SteganographyParams> delegate) {
         mDelegate = delegate;
     }
 

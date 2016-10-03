@@ -10,8 +10,7 @@ import java.util.Arrays;
 
 public class SteganographyTest {
 
-    final int OPAQUE_WHITE = 0xFFFFFFFF;
-    final String MESSAGE = "Hello world! lorem ipsum bla bla bla bla";
+    private final String MESSAGE = "Hello world! lorem ipsum bla bla bla bla";
 
     /**
      * Int array of opaque white pixels. Length is 8 + 32.
@@ -20,7 +19,8 @@ public class SteganographyTest {
      */
     private int[] getUnencodedPixels() {
         int[] pixels = new int[MESSAGE.length()*8 + 32];
-        Arrays.fill(pixels, OPAQUE_WHITE);
+        int opaqueWhite = 0xFFFFFFFF;
+        Arrays.fill(pixels, opaqueWhite);
 
         return pixels;
     }
@@ -33,7 +33,7 @@ public class SteganographyTest {
     public void testEncodeMessageTooLong() {
         int[] pixels = getUnencodedPixels();
 
-        pixels = SteganographyUtils.encode(pixels, MESSAGE + "Message too long to fit into pixels.");
+        SteganographyUtils.encode(pixels, MESSAGE + "Message too long to fit into pixels.");
     }
 
     @Test
