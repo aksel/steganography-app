@@ -43,7 +43,7 @@ public class FileUtils {
      */
     public static Uri saveBitmap(Bitmap bitmap) {
         String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-        String folder = "\\encoded_images";
+        String folder = "/encoded_images";
         File myDir = new File(root + folder);
 
         myDir.mkdirs();

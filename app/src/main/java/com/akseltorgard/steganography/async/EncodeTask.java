@@ -23,7 +23,7 @@ public class EncodeTask extends SteganographyTask {
     @Override
     protected SteganographyParams execute(SteganographyParams steganographyParams) {
 
-        Bitmap bitmap = BitmapFactory.decodeFile(steganographyParams.getFilePath());
+        Bitmap bitmap = BitmapUtils.decodeFile(steganographyParams.getFilePath());
 
         int[] encodedPixels = SteganographyUtils.encode(
                 BitmapUtils.getPixels(bitmap),
