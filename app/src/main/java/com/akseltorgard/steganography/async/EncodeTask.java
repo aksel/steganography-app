@@ -24,9 +24,20 @@ public class EncodeTask extends SteganographyTask {
     protected SteganographyParams execute(SteganographyParams steganographyParams) {
 
         Bitmap bitmap = BitmapUtils.decodeFile(steganographyParams.getFilePath());
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+        int numberOfPixels = w * h;
+
+        byte[] data = steganographyParams.getMessage().getBytes();
+
+        int requiredLength = data.length * 8 + 32;
+
+        if (requiredLength > numberOfPixels) {
+            throw new IllegalArgumentException("Message is too long to fit into pixels.");
+        }
 
         int[] encodedPixels = SteganographyUtils.encode(
-                BitmapUtils.getPixels(bitmap),
+                BitmapUtils.getPixels(bitmap, requiredLength),
                 steganographyParams.getMessage()
         );
 

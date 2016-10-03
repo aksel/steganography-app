@@ -1,6 +1,13 @@
 package com.akseltorgard.steganography.utils;
 
+import android.util.Log;
+
 public class SteganographyUtils {
+
+    /**
+     * Max length to attempt to decode.
+     */
+    private static final int MAX_DECODABLE_LENGTH = 0x00FFFFFF;
 
     private static final int LSB = 1;
 
@@ -13,13 +20,8 @@ public class SteganographyUtils {
      * @return Pixels encoded with message.
      */
     public static int[] encode(int[] pixels, String message) {
+        Log.d("Steganography.Encode", "Encode Begin");
         byte[] data = message.getBytes();
-
-        int requiredLength = data.length * 8 + 32;
-
-        if (requiredLength > pixels.length) {
-            throw new IllegalArgumentException("Message is too long to fit into pixels.");
-        }
 
         //Insert length into data
         {
@@ -49,6 +51,8 @@ public class SteganographyUtils {
             }
         }
 
+        Log.d("Steganography.Encode", "Encode End");
+
         return pixels;
     }
     /**
@@ -58,6 +62,7 @@ public class SteganographyUtils {
      * @return Decoded data.
      */
     public static String decode(int[] pixels) {
+        Log.d("Steganography.Decode", "Decode Begin");
 
         int pixelIndex = 0;
 
@@ -65,11 +70,17 @@ public class SteganographyUtils {
         int length = decodeBitsFromPixels(pixels, 32, pixelIndex);
         pixelIndex += 32;
 
+        if (length < 0 || length > MAX_DECODABLE_LENGTH) {
+            throw new IllegalArgumentException("Failed to decode. Are you sure the image is encoded?");
+        }
+
         byte[] data = new byte[length];
 
         for (int byteIndex = 0; byteIndex < length; byteIndex++, pixelIndex+=8) {
             data[byteIndex] = (byte) decodeBitsFromPixels(pixels, 8, pixelIndex);
         }
+
+        Log.d("Steganography.Decode", "Decode End");
 
         return new String(data);
     }

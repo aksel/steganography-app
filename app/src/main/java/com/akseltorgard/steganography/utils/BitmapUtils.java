@@ -12,8 +12,10 @@ import java.nio.channels.FileChannel;
 
 public class BitmapUtils {
 
-    /**'
+    /**
+     * '
      * Decodes a bitmap from file. If the bitmap is immutable, it is converted.
+     *
      * @param filePath File
      * @return Mutable bitmap.
      */
@@ -30,7 +32,7 @@ public class BitmapUtils {
     /**
      * Bitmaps must be mutable in order for setPixels to works.
      * http://stackoverflow.com/a/9194259
-     *
+     * <p>
      * Converts a immutable bitmap to a mutable bitmap. This operation doesn't allocates
      * more memory that there is already allocated.
      *
@@ -56,7 +58,7 @@ public class BitmapUtils {
             //Copy the byte to the file
             //Assume source bitmap loaded using options.inPreferredConfig = Config.ARGB_8888;
             FileChannel channel = randomAccessFile.getChannel();
-            MappedByteBuffer map = channel.map(FileChannel.MapMode.READ_WRITE, 0, imgIn.getRowBytes()*height);
+            MappedByteBuffer map = channel.map(FileChannel.MapMode.READ_WRITE, 0, imgIn.getRowBytes() * height);
             imgIn.copyPixelsToBuffer(map);
             //recycle the source bitmap, this will be no longer used.
             imgIn.recycle();
@@ -91,10 +93,31 @@ public class BitmapUtils {
         return pixels;
     }
 
-    public static void setPixels(Bitmap bitmap, int[] pixels) {
-        int w = bitmap.getWidth();
-        int h = bitmap.getHeight();
+    public static int[] getPixels(Bitmap bitmap, int requiredLength) {
+        int[] bounds = getMinimumAreaBounds(requiredLength, bitmap.getWidth());
 
-        bitmap.setPixels(pixels, 0, w, 0, 0, w, h);
+        int[] pixels = new int[bounds[0] * bounds[1]];
+        bitmap.getPixels(pixels, 0, bounds[0], 0, 0, bounds[0], bounds[1]);
+
+        return pixels;
+    }
+
+    public static void setPixels(Bitmap bitmap, int[] pixels) {
+        int[] bounds = getMinimumAreaBounds(pixels.length, bitmap.getWidth());
+        bitmap.setPixels(pixels, 0, bounds[0], 0, 0, bounds[0], bounds[1]);
+    }
+
+    /**
+     * Gets the area required for numberOfBytes to fit into an image width width of imageWidth.
+     * @param requiredLength Number of pixels required for message to fit in image.
+     * @param imageWidth Width of image.
+     * @return [width, height]
+     */
+    private static int[] getMinimumAreaBounds(int requiredLength, int imageWidth) {
+        if (requiredLength < imageWidth) {
+            return new int[] {requiredLength, 1};
+        } else {
+            return new int[] {imageWidth, (int) Math.ceil(requiredLength / imageWidth) };
+        }
     }
 }
