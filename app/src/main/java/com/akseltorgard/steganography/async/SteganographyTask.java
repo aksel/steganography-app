@@ -29,7 +29,7 @@ abstract class SteganographyTask extends AsyncTask<SteganographyParams, Void, St
     }
 
     private SteganographyParams handleFailure(Exception e, SteganographyParams steganographyParams) {
-        steganographyParams.setMessage("Error: " + e.getCause().getMessage());
+        steganographyParams.setMessage("Error: " + e.getMessage());
         steganographyParams.setType(AsyncResponse.Type.FAILURE);
 
         Log.e("SteganographyTask", steganographyParams.getMessage(), e);
