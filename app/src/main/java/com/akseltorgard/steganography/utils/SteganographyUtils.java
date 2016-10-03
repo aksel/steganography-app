@@ -2,7 +2,7 @@ package com.akseltorgard.steganography.utils;
 
 public class SteganographyUtils {
 
-    static final int LSB = 1;
+    private static final int LSB = 1;
 
     /**
      * Breaks down message into bits. Each bit replaces the LSB of a pixel.
@@ -40,13 +40,12 @@ public class SteganographyUtils {
         //For each byte of data, insert its 8 bits into the LSB of 8 pixels.
         for (byte b : data) {
             for (int i = 0; i < 8; i++, pixelIndex++) {
-                //Get pixel without its LSB
-                int pixel = pixels[pixelIndex] & ~LSB;
-                //OR the LSB of current byte into pixel
-                pixel |= b & LSB;
-                //Bit-shift current byte into next position
+                //Remove LSB from pixel
+                pixels[pixelIndex] &= ~LSB;
+                //OR LSB of byte into pixel
+                pixels[pixelIndex] |= b & LSB;
+                //Bit-shift byte into next position
                 b >>>= 1;
-                pixels[pixelIndex] = pixel;
             }
         }
 
