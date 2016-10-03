@@ -274,7 +274,9 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse<Ste
 
         switch (t) {
             case ENCODE_SUCCESS :
-                startSendActivity(result.getResultUri());
+                Uri resultUri = result.getResultUri();
+                FileUtils.scanFile(this, FileUtils.uriToFilePath(this, resultUri));
+                startSendActivity(resultUri);
                 break;
 
             case DECODE_SUCCESS :

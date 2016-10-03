@@ -25,6 +25,11 @@ public class FileUtils {
             String[] imageColumns = new String[] { MediaStore.Images.ImageColumns.DATA };
 
             Cursor cursor = context.getContentResolver().query(uri, imageColumns, null, null, null);
+
+            if (cursor == null) {
+                throw new NullPointerException("Could not get filepath.");
+            }
+
             cursor.moveToFirst();
 
             filePath = cursor.getString(0);
@@ -42,15 +47,11 @@ public class FileUtils {
      * @return Uri to saved encoded image.
      */
     public static Uri saveBitmap(Bitmap bitmap) {
-        String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-        String folder = "/encoded_images";
-        File myDir = new File(root + folder);
-
-        myDir.mkdirs();
+        File fileFolder = getFileFolder();
 
         String filename = System.currentTimeMillis() + ".png";
 
-        File file = new File(myDir, filename);
+        File file = new File(fileFolder, filename);
 
         try {
             FileOutputStream out = new FileOutputStream(file);
@@ -68,10 +69,20 @@ public class FileUtils {
         return Uri.fromFile(file);
     }
 
-    public static void scanFile(Context context, File file) {
+    private static File getFileFolder() {
+        String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+        String folder = "/encoded_images";
+        File fileFolder = new File(root + folder);
+
+        fileFolder.mkdirs();
+
+        return fileFolder;
+    }
+
+    public static void scanFile(Context context, String filePath) {
         // Tell the media scanner about the new file so that it is
         // immediately available to the user.
-        MediaScannerConnection.scanFile(context, new String[] { file.toString() }, null,
+        MediaScannerConnection.scanFile(context, new String[] { filePath }, null,
                 new MediaScannerConnection.OnScanCompletedListener() {
                     public void onScanCompleted(String path, Uri uri) {
                         Log.i("ExternalStorage", "Scanned " + path + ":");
