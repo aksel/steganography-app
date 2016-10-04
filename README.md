@@ -1,5 +1,5 @@
-# Steganography.xyz
-Steganography.xyz is an Android app for steganography.
+# Steganography
+Transmit secret messages with image steganography.
 
 Features:
 * Encode images with secret messages
