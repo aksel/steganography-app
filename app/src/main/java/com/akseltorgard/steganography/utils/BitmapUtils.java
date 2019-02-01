@@ -117,7 +117,7 @@ public class BitmapUtils {
         if (requiredLength < imageWidth) {
             return new int[] {requiredLength, 1};
         } else {
-            return new int[] {imageWidth, (int) Math.ceil(requiredLength / imageWidth) };
+            return new int[] {imageWidth, (int) Math.ceil(((double) requiredLength) / ((double) imageWidth)) };
         }
     }
 }
